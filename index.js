@@ -1,28 +1,21 @@
-import {OrbitControls} from 'https://unpkg.com/three@0.127.0/examples/jsm/controls/OrbitControls.js'
+import {OrbitControls} from 'https://unpkg.com/three@0.127.0/examples/jsm/controls/OrbitControls.js';
+import {GLTFLoader} from 'https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js';
 import * as THREE from 'https://unpkg.com/three@0.127.0/build/three.module.js';
 const canvas = document.querySelector('canvas.webgl')
 
 // Scene
 const scene = new THREE.Scene()
 
-const textureLoader = new THREE.TextureLoader()
-const myTexture = textureLoader.load('coolTex.jpg')
-
 // Object
-const geometry = new THREE.BoxGeometry(1,1,1)
-const geometry2 = new THREE.DodecahedronGeometry(0.5,3)
-const material = new THREE.MeshBasicMaterial({
-    map: myTexture
-})
-const boxMesh = new THREE.Mesh(geometry,material)
-const sphereMesh = new THREE.Mesh(geometry2,material)
-scene.add(boxMesh)
-// scene.add(sphereMesh)
-boxMesh.position.x = 0
-boxMesh.position.y = 0.8
-sphereMesh.position.x = -1.6
-sphereMesh.position.y = 0.5
-geometry.center()
+
+const loader2 = new GLTFLoader();//funciona
+
+loader2.load('Models/HellLand.glb', function(gltf){
+  scene.add(gltf.scene);
+});
+
+
+
 // Sizes
 const sizes = {
     width:window.innerWidth,
@@ -50,7 +43,7 @@ scene.add(camera)
 // Controls
 const controls = new OrbitControls(camera, canvas)
 
-controls.enableZoom = false;
+controls.enableZoom = true;
 controls.enableDamping = true
 
 const renderer = new THREE.WebGLRenderer({
@@ -64,11 +57,6 @@ const clock = new THREE.Clock()
 
 const tick = () => {
     const elapsedTime = clock.getElapsedTime()
-    boxMesh.rotateX(30*0.0003)
-    boxMesh.rotateY(30*0.0003)
-    sphereMesh.rotateY(30*0.0003)
-    // mesh.position.y = Math.sin(elapsedTime) *0.1
-    boxMesh.position.z = Math.sin(elapsedTime) * 1
 
     controls.update()
     controls.enableDamping = true
