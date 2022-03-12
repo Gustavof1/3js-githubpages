@@ -10,7 +10,7 @@ const scene = new THREE.Scene()
 
 const loader2 = new GLTFLoader();//funciona
 
-loader2.load('Models/HellLand.glb', function(gltf){
+loader2.load('HellLand.glb', function(gltf){
   scene.add(gltf.scene);
 });
 
