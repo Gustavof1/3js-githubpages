@@ -19,6 +19,10 @@ scene.add(ambientLight);
 const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
 dirLight.position.set(5, 10, 7.5);
 scene.add(dirLight);
+// Nova luz pontual
+const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+pointLight.position.set(0, 5, 5);
+scene.add(pointLight);
 
 // Carregar modelo GLB
 const loader = new GLTFLoader();
@@ -110,38 +114,4 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
-import {GLTFLoader} from 'https://unpkg.com/three@0.127.0/examples/jsm/loaders/GLTFLoader.js';
-import * as THREE from 'https://unpkg.com/three@0.127.0/build/three.module.js';
-const canvas = document.querySelector('canvas.webgl')
-
-// Scene
-const scene = new THREE.Scene()
-
-// Object
-
-// const loader2 = new GLTFLoader();//funciona
-
-loader2.load('HellLand.glb', function(gltf){
-  scene.add(gltf.scene);
-});
-
-
-
-// Sizes
-const sizes = {
-    width:window.innerWidth,
-    height:window.innerHeight
-}
-
-// Renderer gets updated each time window is resized
-window.addEventListener('resize',()=>{
-    sizes.width = window.innerWidth
-    sizes.height = window.innerHeight
-
-    camera.aspect = sizes.width/sizes.height
-    camera.updateProjectionMatrix()
-
-    renderer.setSize(sizes.width,sizes.height)
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2))
-    
-})
+// ...código removido: imports e loader duplicados, bloco de resize duplicado...
