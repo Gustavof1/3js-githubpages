@@ -27,7 +27,24 @@ scene.add(pointLight);
 // Carregar modelo GLB
 const loader = new GLTFLoader();
 loader.load('HellLand.glb', (gltf) => {
-    scene.add(gltf.scene);
+    // Centraliza o modelo na origem
+    const model = gltf.scene;
+    // Calcula o bounding box do modelo
+    const box = new THREE.Box3().setFromObject(model);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+    model.position.sub(center); // Centraliza na origem
+    scene.add(model);
+
+    // Ajusta a câmera para enquadrar o modelo
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const fov = camera.fov * (Math.PI / 180);
+    let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+    cameraZ *= 1.5; // margem extra
+    camera.position.set(0, maxDim * 0.5, cameraZ);
+    camera.lookAt(0, 0, 0);
 }, undefined, (error) => {
     console.error('Erro ao carregar GLB:', error);
 });
