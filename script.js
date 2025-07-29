@@ -1,0 +1,133 @@
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.155.0/build/three.module.js';
+import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.155.0/examples/jsm/loaders/GLTFLoader.js';
+import { PointerLockControls } from 'https://cdn.jsdelivr.net/npm/three@0.155.0/examples/jsm/controls/PointerLockControls.js';
+
+// Cena, câmera e renderizador
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x222233);
+
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, 1.6, 5);
+
+const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('.webgl'), antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+
+// Luzes
+const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+scene.add(ambientLight);
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(5, 10, 7.5);
+scene.add(dirLight);
+// Nova luz pontual
+const pointLight = new THREE.PointLight(0xffffff, 1, 100);
+pointLight.position.set(0, 5, 5);
+scene.add(pointLight);
+
+// Carregar modelo GLB
+const loader = new GLTFLoader();
+loader.load('HellLand.glb', (gltf) => {
+    // Centraliza o modelo na origem
+    const model = gltf.scene;
+    // Calcula o bounding box do modelo
+    const box = new THREE.Box3().setFromObject(model);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+    model.position.sub(center); // Centraliza na origem
+    scene.add(model);
+
+    // Ajusta a câmera para enquadrar o modelo
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const fov = camera.fov * (Math.PI / 180);
+    let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+    cameraZ *= 1.5; // margem extra
+    camera.position.set(0, maxDim * 0.5, cameraZ);
+    camera.lookAt(0, 0, 0);
+}, undefined, (error) => {
+    console.error('Erro ao carregar GLB:', error);
+});
+
+// Controles PointerLock (WASD + mouse)
+const controls = new PointerLockControls(camera, renderer.domElement);
+scene.add(controls.getObject());
+
+const instructions = document.createElement('div');
+instructions.style.position = 'absolute';
+instructions.style.top = '20px';
+instructions.style.left = '50%';
+instructions.style.transform = 'translateX(-50%)';
+instructions.style.color = '#fff';
+instructions.style.background = 'rgba(0,0,0,0.5)';
+instructions.style.padding = '10px 20px';
+instructions.style.borderRadius = '8px';
+instructions.style.fontFamily = 'sans-serif';
+instructions.innerHTML = 'Clique para ativar o controle. Use WASD para mover e o mouse para olhar ao redor.';
+document.body.appendChild(instructions);
+
+instructions.addEventListener('click', () => {
+    controls.lock();
+});
+
+controls.addEventListener('lock', () => {
+    instructions.style.display = 'none';
+});
+controls.addEventListener('unlock', () => {
+    instructions.style.display = '';
+});
+
+// Movimento WASD
+const move = { forward: false, backward: false, left: false, right: false };
+const velocity = new THREE.Vector3();
+const direction = new THREE.Vector3();
+const speed = 5.0;
+
+function onKeyDown(event) {
+    switch (event.code) {
+        case 'KeyW': move.forward = true; break;
+        case 'KeyA': move.left = true; break;
+        case 'KeyS': move.backward = true; break;
+        case 'KeyD': move.right = true; break;
+    }
+}
+function onKeyUp(event) {
+    switch (event.code) {
+        case 'KeyW': move.forward = false; break;
+        case 'KeyA': move.left = false; break;
+        case 'KeyS': move.backward = false; break;
+        case 'KeyD': move.right = false; break;
+    }
+}
+document.addEventListener('keydown', onKeyDown);
+document.addEventListener('keyup', onKeyUp);
+
+let prevTime = performance.now();
+function animate() {
+    requestAnimationFrame(animate);
+    const time = performance.now();
+    const delta = (time - prevTime) / 1000;
+
+    velocity.x -= velocity.x * 10.0 * delta;
+    velocity.z -= velocity.z * 10.0 * delta;
+
+    direction.z = Number(move.forward) - Number(move.backward);
+    direction.x = Number(move.right) - Number(move.left);
+    direction.normalize();
+
+    if (move.forward || move.backward) velocity.z -= direction.z * speed * delta;
+    if (move.left || move.right) velocity.x -= direction.x * speed * delta;
+
+    controls.moveRight(-velocity.x * delta);
+    controls.moveForward(-velocity.z * delta);
+
+    prevTime = time;
+    renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
